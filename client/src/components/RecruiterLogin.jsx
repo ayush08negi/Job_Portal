@@ -24,23 +24,21 @@ const RecruiterLogin = () => {
         e.preventDefault()
 
         if(state == 'Sign Up' && !isTextDataSubmitted ){
-            setIsTextDataSubmitted(true)
+            return setIsTextDataSubmitted(true)
         }
 
         try{
            if(state === 'Login'){
              const {data} = await axios.post(backendUrl + '/api/company/login',{email,password});
              if(data.success){
-              console.log("inside login")
-               console.log(data);
                setCompanyData(data.company)
                setCompanyToken(data.token)
                localStorage.setItem('companyToken', data.token)
                setShowRecruiterLogin(false)
                navigate('/dashboard')
-             }
-           }else{
-             toast.error(data.message)
+             }else{
+              toast.error(data.message)
+            }
            }
         } catch(error){
 
