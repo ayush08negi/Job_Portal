@@ -27,6 +27,7 @@ const RecruiterLogin = () => {
             return setIsTextDataSubmitted(true)
         }
 
+
         try{
            if(state === 'Login'){
              const {data} = await axios.post(backendUrl + '/api/company/login',{email,password});
@@ -41,7 +42,8 @@ const RecruiterLogin = () => {
             }
            }
         } catch(error){
-
+          console.log(error)
+           toast.error(error.message)
         }
     }
     

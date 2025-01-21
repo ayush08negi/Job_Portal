@@ -2,6 +2,37 @@ import JobApplication from '../models/jobApplication.js'
 import User from '../models/User.js'
 import {v2 as cloudinary} from 'cloudinary'
 
+export const register = async(req,res)=>{
+    try{
+      const { name, email, password,role }  = req.body;
+      const imageFile = req.file;
+
+      if(!name || !email || !password || !role || !imageFile){
+         return res.status(400).json({
+            message: "Somthing missing"
+         });
+      };
+      const user = await User.findOne({email});
+      if(user){
+         return res.status(400).json({
+            success:false,
+            message: "User already exist with this email"
+         })
+      }
+      
+      const hashPassword = await bcrypt.hash(password,10);
+      await User.create({
+         name, email,password,role
+      })
+      
+    }catch(error){
+         return res.status(500).json({
+            success: false,
+            message:error.message
+         })
+    }
+}
+
 export const getUserData = async(req,res)=>{
     
     const userId = req.auth.userId
