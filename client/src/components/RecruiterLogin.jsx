@@ -1,8 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { assets } from '../assets/assets';
 import AppContext from '../context/AppContext';
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify';
 
 const RecruiterLogin = () => {
+
+  const navigate = useNavigate()
  
     const [state,setState] = useState('Login');
     const [name,setName] = useState('');
@@ -13,13 +18,32 @@ const RecruiterLogin = () => {
 
     const [isTextDataSubmitted,setIsTextDataSubmitted] = useState(false)
 
-    const {setShowRecruiterLogin} = useContext(AppContext)
+    const {setShowRecruiterLogin , backendUrl, setCompanyToken, setCompanyData} = useContext(AppContext)
 
     const onSubmitHandler = async(e) =>{
         e.preventDefault()
 
         if(state == 'Sign Up' && !isTextDataSubmitted ){
             setIsTextDataSubmitted(true)
+        }
+
+        try{
+           if(state === 'Login'){
+             const {data} = await axios.post(backendUrl + '/api/company/login',{email,password});
+             if(data.success){
+              console.log("inside login")
+               console.log(data);
+               setCompanyData(data.company)
+               setCompanyToken(data.token)
+               localStorage.setItem('companyToken', data.token)
+               setShowRecruiterLogin(false)
+               navigate('/dashboard')
+             }
+           }else{
+             toast.error(data.message)
+           }
+        } catch(error){
+
         }
     }
     
@@ -43,7 +67,7 @@ const RecruiterLogin = () => {
                         <img className='w-16 rounded-full' src={image ? URL.createObjectURL(image) : assets.upload_area} alt="" />
                         <input onChange={e => setImage (e.target.files[0])} type="file" id='image' hidden />
                     </label>
-                    <p>Upload Company <br/> logo </p>
+                    <p> Upload Company <br/> logo </p>
                  </div>
                 </>
                 : <>
@@ -53,14 +77,13 @@ const RecruiterLogin = () => {
                  <input className='outline-none text-sm' onChange={e => setName(e.target.value)} value={name} type="text" placeholder='Company Name' required />
               </div> }
                
-   
                 <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
-                   <img src={assets.email_icon} alt="" />
+                   <img src={ assets.email_icon } alt="" />
                    <input className='outline-none text-sm'  onChange={e => setEmail(e.target.value)} value={email} type="text" placeholder='Email Id' required />
                 </div>
    
                 <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
-                   <img src={assets.lock_icon} alt="" />
+                   <img src={ assets.lock_icon } alt="" />
                    <input  className='outline-none text-sm' onChange={e => setPassword(e.target.value)} value={password} type="password" placeholder='Password' required />
                 </div>
                
@@ -70,7 +93,7 @@ const RecruiterLogin = () => {
             { state === 'Login' && <p className='text-sm text-blue-600 my-4 cursor-pointer'>Forgot password</p>}
             
 
-            <button type='submit' className='bg-blue-600 text-white py-2 rounded-full w-full mt-4'>
+            <button type='submit'  className='bg-blue-600 text-white py-2 rounded-full w-full mt-4'>
             {state === 'Login' ? 'login' : isTextDataSubmitted ? 'create account' : 'next' }
             </button>
               

@@ -3,6 +3,8 @@ import AppContext from "./AppContext";
 import React, { useEffect, useState } from 'react'
 
 export const AppContextProvider = (props) => {
+
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
      
     const [searchFilter,setSearchFilter] = useState({
         title:'',
@@ -34,7 +36,8 @@ export const AppContextProvider = (props) => {
        jobs,setJobs,
        showRecruiterLogin,setShowRecruiterLogin,
        companyToken,setCompanyToken,
-       companyData,setCompanyData
+       companyData,setCompanyData,
+       backendUrl
 
     }
 
