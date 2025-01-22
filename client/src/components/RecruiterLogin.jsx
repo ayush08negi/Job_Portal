@@ -16,36 +16,60 @@ const RecruiterLogin = () => {
 
     const[image,setImage] = useState(false);
 
-    const [isTextDataSubmitted,setIsTextDataSubmitted] = useState(false)
-
     const {setShowRecruiterLogin , backendUrl, setCompanyToken, setCompanyData} = useContext(AppContext)
 
-    const onSubmitHandler = async(e) =>{
-        e.preventDefault()
-
-        if(state === 'Sign Up' && !isTextDataSubmitted ){
-            return setIsTextDataSubmitted(true)
-        }
-
-
-        try{
-           if(state === 'Login'){
-             const {data} = await axios.post(backendUrl + '/api/company/login',{email,password});
-             if(data.success){
-               setCompanyData(data.company)
-               setCompanyToken(data.token)
-               localStorage.setItem('companyToken', data.token)
-               setShowRecruiterLogin(false)
-               navigate('/dashboard')
-             }else{
-              toast.error(data.message)
+        const onSubmitHandler = async (e) => {
+          e.preventDefault();
+          try {
+            if (state === 'Sign Up') {
+              if (!name || !email || !password ||!image) {
+                toast.error("Please fill out all fields.");
+                return;
+              }
+              const formData = new FormData();
+              formData.append("name", name);
+              formData.append("email", email);
+              formData.append("password", password);
+              formData.append("image", image);
+            
+              // Make the signup API call
+              const { data } = await axios.post(backendUrl+ '/api/company/register', formData,);
+        
+              console.log(data);
+        
+              if (data.success) {
+                toast.success("Account created successfully!");
+                setState('Login');
+                setIsTextDataSubmitted(true);
+              } else {
+                toast.error(data.message || "Failed to create account.");
+              }
             }
-           }
-        } catch(error){
-          console.log(error)
-           toast.error(error.message)
-        }
-    }
+        
+            if (state === 'Login') {
+              // Make the login API call
+              const { data } = await axios.post(backendUrl +'/api/company/login', {
+                email,
+                password,
+              });
+        
+              if (data.success) {
+                toast.success("Login successful!");
+                setCompanyData(data.company);
+                setCompanyToken(data.token);
+                localStorage.setItem('companyToken', data.token);
+                setShowRecruiterLogin(false);
+                navigate('/dashboard');
+              } else {
+                toast.error(data.message || "Login failed.");
+              }
+            }
+          } catch (error) {
+            console.error(error); // Log error for debugging
+            toast.error(error.response?.data?.message || error.message || "Something went wrong.");
+          }
+        };
+        
     
     useEffect(()=>{
         document.body.style.overflow = 'hidden'
@@ -59,18 +83,7 @@ const RecruiterLogin = () => {
         <form onSubmit={onSubmitHandler} className='relative bg-white p-10 rounded-xl text-slate-500'>
             <h1 className='text-center text-2xl text-neutral-700 font-medium'>Recruiter {state}</h1>
             <p className='text-sm '>Welcome back! Please sign in to continue</p>
-            {
-                state ==='Sign Up' && isTextDataSubmitted 
-                ? <>
-                 <div className='flex items-center gap-4 my-10'>
-                    <label htmlFor="image">
-                        <img className='w-16 rounded-full' src={image ? URL.createObjectURL(image) : assets.upload_area} alt="" />
-                        <input onChange={e => setImage (e.target.files[0])} type="file" id='image' hidden />
-                    </label>
-                    <p> Upload Company <br/> logo </p>
-                 </div>
-                </>
-                : <>
+                
                 {state !== 'Login' && 
                  <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
                  <img src={assets.person_icon} alt="" />
@@ -87,14 +100,24 @@ const RecruiterLogin = () => {
                    <input  className='outline-none text-sm' onChange={e => setPassword(e.target.value)} value={password} type="password" placeholder='Password' required />
                 </div>
                
+               {
+               (state !== 'Login') && <>
+                <div className='flex items-center gap-4 my-10'>
+                    <label htmlFor="image">
+                        <img className='w-16 rounded-full' src={image ? URL.createObjectURL(image) : assets.upload_area} alt="" />
+                        <input onChange={e => setImage (e.target.files[0])} type="file" id='image' hidden />
+                    </label>
+                    <p> Upload Company <br/> logo </p>
+                 </div>
                </>
-            }
+              }
+      
 
             { state === 'Login' && <p className='text-sm text-blue-600 my-4 cursor-pointer'>Forgot password</p>}
             
 
             <button type='submit'  className='bg-blue-600 text-white py-2 rounded-full w-full mt-4'>
-            {state === 'Login' ? 'login' : isTextDataSubmitted ? 'create account' : 'next' }
+            {state === 'Login' ? 'login' : 'create account' }
             </button>
               
               {

@@ -12,6 +12,7 @@ import ViewApplications from "./pages/ViewApplications"
 import 'quill/dist/quill.snow.css'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
+import Signup from "./pages/SignUp"
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
     <ToastContainer/>
      <Routes>
        <Route path='/' element = {<Home/>} />
+       <Route path='/signup' element = {<Signup/>} />
        <Route path='/apply-job/:id' element = {<ApplyJob/>} />
        <Route path='/applications' element = {<Applications/>} />
        <Route path='/dashboard' element = {<DashBoard/>} >

@@ -8,9 +8,9 @@ import JobApplication from '../models/jobApplication.js'
 export const registerCompany = async(req,res) =>{
    
     const {name,email,password} = req.body;
-    const imageFile = req.file;
+    const image = req.file;
     
-    if(!name || !email || !password || !imageFile){
+    if(!name || !email || !password || !image){
         return res.json({
             success : false,
             message : "Missing Details"
@@ -29,8 +29,19 @@ export const registerCompany = async(req,res) =>{
         const salt = await bcrypt.genSalt(10)
         const hashPassword = await bcrypt.hash(password,salt);
 
-        const imageUpload = await cloudinary.uploader.upload(imageFile.path)
-
+        const imageUpload = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                { resource_type: 'auto' },
+                function (error, result) {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
+                }
+            );
+            stream.end(req.file.buffer); // Upload buffer to Cloudinary
+        });
         const company = await Company.create({
             name,
             email,

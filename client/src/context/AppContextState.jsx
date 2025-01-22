@@ -19,6 +19,7 @@ export const AppContextProvider = (props) => {
     const [companyToken, setCompanyToken] = useState(null)
     const [companyData, setCompanyData] = useState(null)
     const[userData, setUserData] = useState(null)
+    const[userToken,setUserToken] = useState(null)
     const[userApplications, setUserApplications] = useState(null)
 
     // function t ofetch jobs 
@@ -39,9 +40,18 @@ export const AppContextProvider = (props) => {
 
     const fetchUserData = async(req,res) =>{
          try{
-          
-         }catch(error){
+           const{data} = await axios.get(backendUrl + 'api/users/user',
+            { headers: {token: userToken}}
+           )
 
+           if(data.success){
+             setUserData(data.user)
+           }else{
+            toast.error(data.message)
+           }
+           
+         }catch(error){
+           toast.error(error.message)
          }
     }
 
@@ -76,6 +86,12 @@ export const AppContextProvider = (props) => {
          }
     },[companyToken])
 
+    useEffect(()=>{
+        if(userToken){
+            fetchUserData();
+        }
+    },[userToken])
+
     const state = { 
        searchFilter,setSearchFilter,
        isSearched,setIsSearched,
@@ -85,7 +101,9 @@ export const AppContextProvider = (props) => {
        companyData,setCompanyData,
        userData,setUserData,
        userApplications,setUserApplications,
-       backendUrl
+       userToken,setUserToken,
+       backendUrl,
+       fetchUserData
     }
 
     return (

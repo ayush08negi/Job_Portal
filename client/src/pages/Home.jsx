@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import JobListing from '../components/JobListing'
 import Footer from '../components/Footer'
+import Signup from './SignUp'
 
 const Home = () => {
   return (
