@@ -1,13 +1,15 @@
 import JobApplication from '../models/jobApplication.js'
 import User from '../models/User.js'
 import {v2 as cloudinary} from 'cloudinary'
+import bcrypt from 'bcrypt'
+import generateToken from '../utils/generateToken.js'
 
 export const register = async(req,res)=>{
     try{
       const { name, email, password,role }  = req.body;
       const imageFile = req.file;
-
-      if(!name || !email || !password || !role || !imageFile){
+      
+      if(!name || !email || !password || !role){
          return res.status(400).json({
             message: "Somthing missing"
          });
@@ -21,8 +23,21 @@ export const register = async(req,res)=>{
       }
       
       const hashPassword = await bcrypt.hash(password,10);
+      const imageUpload = await cloudinary.uploader.upload(imageFile.path)
+
       await User.create({
-         name, email,password,role
+         name,
+         email,
+         password: hashPassword,
+         role,
+        //  image:imageUpload.secure_url
+      })
+
+
+      return res.status(201).json({
+        success:true,
+        message:"Account created successfully",
+        token : generateToken(user._id)
       })
       
     }catch(error){
@@ -30,6 +45,55 @@ export const register = async(req,res)=>{
             success: false,
             message:error.message
          })
+    }
+}
+
+export const login = async(req,res)=>{
+    try{
+        const {email,password,role} = req.body;
+        if(!email || !password || !role){
+            return res.status(400).json({
+                success: false,
+                message:"Something in missing"
+            })
+        }
+
+        const user = await User.findOne({email});
+        const isPasswordMatch = await bcrypt.compare(password,user.password);
+        if(!user || !isPasswordMatch ){
+            return res.status(400).json({
+                success: false,
+                message:'Incorrect email or password'
+            })
+        }
+
+        if(role !== user.role ){
+            return res.status(400).json({
+                success: false,
+                message: 'Account does not matches with currect role'
+            })
+        }
+
+        const token = generateToken(user._id);
+
+        user = {
+            _id : user._id,
+           name : user.name,
+           email: user.email,
+           password: user.password,
+           role: user.role
+        }
+
+        return res.status(200).json({
+            success:true,
+            user,
+        })
+
+    }catch(error){
+       return res.status(500).json({
+           success: false,
+           message: error.message
+       })
     }
 }
 
