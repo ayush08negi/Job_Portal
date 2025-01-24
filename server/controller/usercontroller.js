@@ -1,24 +1,20 @@
 import JobApplication from '../models/jobApplication.js'
 import User from '../models/User.js'
 import { v2 as cloudinary } from 'cloudinary'
+import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt'
 import generateToken from '../utils/generateToken.js'
 
 
 export const register = async (req, res) => {
-    const { name, email, password, role } = req.body;
-    const imageFile = req.file;
-
-    console.log(name, email, password, role, imageFile)
-
-    if (!name || !email || !password || !role || !imageFile) {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
         return res.status(400).json({
             message: "Somthing missing"
         });
     };
     try {
         const userExists = await User.findOne({ email });
-
         if (userExists) {
             return res.status(400).json({
                 success: false,
@@ -28,28 +24,12 @@ export const register = async (req, res) => {
 
         const salt = await bcrypt.genSalt(10)
         const hashPassword = await bcrypt.hash(password, salt);
-        // Upload to Cloudinary using buffer
-        const imageUpload = await new Promise((resolve, reject) => {
-            const stream = cloudinary.uploader.upload_stream(
-                { resource_type: 'auto' },
-                function (error, result) {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(result);
-                    }
-                }
-            );
-            stream.end(req.file.buffer); // Upload buffer to Cloudinary
-        });
-
+    
 
         const user = await User.create({
             name,
             email,
             password: hashPassword,
-            role,
-            image: imageUpload.secure_url
         })
 
         return res.status(201).json({
@@ -68,13 +48,15 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
-        const { email, password, role } = req.body;
-        if (!email || !password || !role) {
+      
+        const { email, password} = req.body;
+        if (!email || !password) {
             return res.status(400).json({
                 success: false,
                 message: "Something in missing"
             })
         }
+        // console.log(email,password);
 
         const user = await User.findOne({ email });
         const isPasswordMatch = await bcrypt.compare(password, user.password);
@@ -85,26 +67,19 @@ export const login = async (req, res) => {
             })
         }
 
-        if (role !== user.role) {
-            return res.status(400).json({
-                success: false,
-                message: 'Account does not matches with currect role'
-            })
-        }
-
         const token = generateToken(user._id);
 
-        user = {
+        const userdata = {
             _id: user._id,
             name: user.name,
             email: user.email,
             password: user.password,
-            role: user.role
         }
-
+        // console.log(userdata)
         return res.status(200).json({
             success: true,
-            user,
+            userdata,
+            token
         })
 
     } catch (error) {
@@ -116,27 +91,19 @@ export const login = async (req, res) => {
 }
 
 export const getUserData = async (req, res) => {
-
-    const userId = req.auth.userId
     try {
-        const user = await User.findById(userId)
-        if (!user) {
-            return res.json({
-                success: false,
-                message: "User Not Found"
-            })
-        }
-        res.json({
-            success: true,
-            user
-        })
+        const { userId } = req.body
+        console.log(userId);
+        const UserData = await User.findById(userId);
+        console.log(UserData);
+        res.json({ success: true, UserData })
     } catch (error) {
-        res.json({
-            success: false,
-            message: error.message
-        })
+        console.log(error)
+        res.json({ success: false, message: error.message })
     }
+
 }
+
 
 export const applyForJob = async (req, res) => {
 

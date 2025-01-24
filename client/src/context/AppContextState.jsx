@@ -16,10 +16,12 @@ export const AppContextProvider = (props) => {
     const [isSearched , setIsSearched] = useState(false);
     const [jobs,setJobs ] = useState([])
     const [showRecruiterLogin,setShowRecruiterLogin] = useState(false)
+    const [showUserLogin,setShowUserLogin] = useState(false)
     const [companyToken, setCompanyToken] = useState(null)
     const [companyData, setCompanyData] = useState(null)
     const[userData, setUserData] = useState(null)
     const[userToken,setUserToken] = useState(null)
+    const[user,setUser] = useState(false)
     const[userApplications, setUserApplications] = useState(null)
 
     // function t ofetch jobs 
@@ -40,14 +42,15 @@ export const AppContextProvider = (props) => {
 
     const fetchUserData = async(req,res) =>{
          try{
-           const{data} = await axios.get(backendUrl + 'api/users/user',
+
+           const {data} = await axios.get(backendUrl + 'api/users/user',
             { headers: {token: userToken}}
            )
 
            if(data.success){
-             setUserData(data.user)
+             setUserData(data.userdata)
            }else{
-            toast.error(data.message)
+             toast.error(data.message)
            }
            
          }catch(error){
@@ -97,11 +100,13 @@ export const AppContextProvider = (props) => {
        isSearched,setIsSearched,
        jobs,setJobs,
        showRecruiterLogin,setShowRecruiterLogin,
+       showUserLogin,setShowUserLogin,
        companyToken,setCompanyToken,
        companyData,setCompanyData,
        userData,setUserData,
        userApplications,setUserApplications,
        userToken,setUserToken,
+       user,setUser,
        backendUrl,
        fetchUserData
     }

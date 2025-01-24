@@ -32,8 +32,7 @@ const RecruiterLogin = () => {
               formData.append("password", password);
               formData.append("image", image);
             
-              // Make the signup API call
-              const { data } = await axios.post(backendUrl+ '/api/company/register', formData,);
+              const { data } = await axios.post(backendUrl+ '/api/company/register', formData);
         
               console.log(data);
         
@@ -47,7 +46,7 @@ const RecruiterLogin = () => {
             }
         
             if (state === 'Login') {
-              // Make the login API call
+              
               const { data } = await axios.post(backendUrl +'/api/company/login', {
                 email,
                 password,

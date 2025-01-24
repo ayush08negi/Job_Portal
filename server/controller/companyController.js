@@ -73,6 +73,7 @@ export const registerCompany = async(req,res) =>{
 export const loginCompany = async(req,res)=>{
     const {email,password} = req.body
     try{
+        console.log("Hii");
         const company = await Company.findOne({email})
         if(await bcrypt.compare(password,company.password)){
             res.json({
