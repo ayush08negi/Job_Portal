@@ -4,6 +4,7 @@ import AppContext from '../context/AppContext';
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify';
+import { AppContextProvider } from '../context/AppContextState';
 
 const UserLogin = () => {
 
@@ -13,9 +14,13 @@ const UserLogin = () => {
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('')
-
-    const { setShowUserLogin, backendUrl, setUserToken, setUserData, setUser } = useContext(AppContext)
-
+    const { setShowUserLogin, backendUrl, setUserToken,userData, setUserData } = useContext(AppContext)
+    console.log(userData);
+    console.log(backendUrl);
+   
+    // useEffect(() => {
+    //     if(token) navigate('/')
+    // },[token])
     const onSubmitHandler = async (e) => {
         e.preventDefault()
 
@@ -30,8 +35,8 @@ const UserLogin = () => {
                 console.log(data);
 
                 if (data.success) {
-                    toast.success("Account created successfully!");
                     setState('Login');
+                    toast.success("Account created successfully!");
                     // setIsTextDataSubmitted(true);
                 } else {
                     toast.error(data.message || "Failed to create account.");
@@ -44,16 +49,18 @@ const UserLogin = () => {
         if (state === 'Login') {
             const { data } = await axios.post(backendUrl + '/api/users/login', { email, password });
 
+              console.log(data);
             if (data.success) {
-                {toast.success("Login successful")}
                 setUserData(data.userdata)
-                console.log(data.userdata);
-                setUserToken(data.token)
+                console.log(userData);
+                setUserToken(data.token);
                 localStorage.setItem('userToken', data.token)
-                setShowUserLogin(false)
-                setUser(true)
+                localStorage.setItem('userData', JSON.stringify(data.userdata))
+                setShowUserLogin(false);
+                toast.success("Login successful")
                 navigate('/')
             } else {
+                console.log(error);
                 toast.error(data.message)
             }
         }

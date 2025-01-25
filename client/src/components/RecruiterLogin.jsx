@@ -16,7 +16,7 @@ const RecruiterLogin = () => {
 
     const[image,setImage] = useState(false);
 
-    const {setShowRecruiterLogin , backendUrl, setCompanyToken, setCompanyData} = useContext(AppContext)
+    const {setShowRecruiterLogin , backendUrl, setCompanyToken,companyData, setCompanyData} = useContext(AppContext)
 
         const onSubmitHandler = async (e) => {
           e.preventDefault();

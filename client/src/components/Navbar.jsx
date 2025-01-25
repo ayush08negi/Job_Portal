@@ -1,85 +1,101 @@
 import React, { useContext, useEffect, useState } from 'react'
-import {assets} from '../assets/assets'
+import { assets } from '../assets/assets'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AppContext from '../context/AppContext'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 
 const Navbar = () => {
 
-     const navigate = useNavigate()
-     let {setShowRecruiterLogin , setShowUserLogin,userData,setUserData,user,setUser,setUserToken , backendUrl} = useContext(AppContext)
+  const navigate = useNavigate()
+  const { userData, setUserData, userToken, setUserToken, setShowRecruiterLogin, setShowUserLogin, backendUrl } = useContext(AppContext)
+
+  const [state, setState] = useState(null);
 
 
-     const fetchUserData = async () => {
-      try {
-          const { data } = await axios.get(`${backendUrl}/api/users/user`);
-          console.log(data);
+  const logout = () => {
+    setUserData(null)
+    setUserToken(null)
+    localStorage.removeItem("userData")
+    localStorage.removeItem("userToken")
+    setShowUserLogin(false)
+    toast.info('You are log out succesfully..')
+    navigate('/')
+  }
 
-          if (data.success) {
-              toast.success('Account created successfully!');
-              setUser(true);
-              setUserData(data.userdata)
-          } else {
-              toast.error(data.message || 'Failed to create account.');
-          }
-      } catch (error) {
-          console.error('Error fetching user data:', error);
-          toast.error('Failed to fetch user data.');
-      }
-  };
+  const user = JSON.parse(localStorage.getItem("userData"));
+  console.log(user)
+  // useEffect(() => {
+  //   if (user) {
+  //     const userObject = JSON.parse(user); // Parse the JSON string back into an object
+  //     console.log(userObject);
+  //     setState(userObject.name)
+  //   }
+  // },[])
+  
 
-
-      const logout = ()=>{
-        console.log(userData)
-        setUserToken(null)
-        // localStorage.removeItem('__clerk_db_jwt')
-        // localStorage.removeItem('__clerk_db_jwt_3r6NAEnr')
-        localStorage.clear();
-        window.location.reload();
-        setUserData(null)
-        console.log(userData)
-        setUser = false;
-        navigate('/') 
-     }
+  const name = localStorage.getItem("userData")
+  // useEffect(() => {
+  //   const storedUserToken = localStorage.getItem("userToken")
+  //   console.log(storedUserData)
+  //   // setState(storedUserData)
 
 
+  //   // if (storedUserToken && storedUserData) {
+  //   //   setUserToken(storedUserToken); // Set token in context
+  //   //   setUserData(JSON.parse(storedUserData)); // Parse and set user data in context
+  //   // }
+  //   console.log("hii")
+  //   // const fun = async () => {
+  //   //   try {
+  //   //     const { data } = await axios.get(backendUrl + '/api/users/user', {
+  //   //       headers: { token: `${userToken}` },
+  //   //     });
 
-     useEffect(()=>{
+  //   //     console.log("API Response:", data);
 
-      fetchUserData();
-      if(userData){
-        navigate('/')
-      }
-     },[])
+  //   //     if (data.success) {
+  //   //       setUserData(data.UserData); // Update state
+  //   //       toast.success("User data fetched successfully!");
+  //   //     } else {
+  //   //       toast.error(data.message || "Failed to fetch user data.");
+  //   //     }
+  //   //   } catch (error) {
+  //   //     console.error("Error while fetching user data:", error);
+  //   //     toast.error("An error occurred while fetching user data.");
+  //   //   }
+  //   // };
 
-     
+  //   // fun();
+  // }, []);
 
   return (
     <div className='shadow py-4'>
-        <div className='container px-4 2xl:px-20 mx-auto flex justify-between items-center'>
-            <img onClick={()=> navigate('/')} className='cursor-pointer' src = {assets.logo} alt=""/>
-            {
-                userData ? <>
-                <div className='flex items-center gap-3'> 
-                  <Link to={'/applications'}>Applied Jobs</Link>
-                  <p> | </p>
-                  <p className='max-sm:hidden'> Hi, {user.name}</p>
-                  <div>
-                    <button onClick={logout} className='text-white bg-black rounded-md p-1.5 text-sm '>Logout</button>
-                  </div>
-
-                </div>
-                </>:  <button onClick={e => setShowUserLogin(true)}  className='bg-blue-600 text-white px-6 sm:px-9 py-2 rounded-full'>Create account</button>
-            }
-                 <div className='flex gap-4 max-sm:text-xs'>  
-                <button onClick={e => setShowRecruiterLogin(true)} className='text-gray-600'>Recruiter Login</button>
-           
-            
-               
+      <div className='container px-4 2xl:px-20 mx-auto flex justify-between items-center'>
+        <img onClick={() => navigate('/')} className='cursor-pointer' src={assets.logo} alt="" />
+        {
+          user &&
+          <div className='flex items-center gap-3'>
+            <Link to={'/applications'}>Applied Jobs</Link>
+            <p> | </p>
+            <p className='max-sm:hidden'> Hi,{user.name}</p>
+            <div>
+              <button onClick={logout} className='text-white bg-black rounded-md p-1.5 text-sm '>Logout</button>
             </div>
-            
-            
+          </div>
+        }
+        <div className='flex gap-4 max-sm:text-xs'>
+          <button onClick={e => setShowRecruiterLogin(true)} className='text-gray-600'>Recruiter Login</button>
+          {
+            !user &&
+            <button onClick={e => setShowUserLogin(true)} className='bg-blue-600 text-white px-6 sm:px-9 py-2 rounded-full'>Create account</button>
+          }
+
+
         </div>
+
+
+      </div>
     </div>
   )
 }

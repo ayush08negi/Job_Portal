@@ -20,17 +20,26 @@ export const AppContextProvider = (props) => {
     const [companyToken, setCompanyToken] = useState(null)
     const [companyData, setCompanyData] = useState(null)
     const[userData, setUserData] = useState(null)
-    const[userToken,setUserToken] = useState(null)
-    const[user,setUser] = useState(false)
-    const[userApplications, setUserApplications] = useState(null)
+    const[userApplications, setUserApplications] = useState([])
+    const [userToken, setUserToken] = useState( null);
 
-    // function t ofetch jobs 
+    useEffect(() => {
+      const storedUserToken = localStorage.getItem('userToken');
+      if (storedUserToken) {
+        setUserToken(storedUserToken);
+      }
+    }, []);
+  
+    useEffect(() => {
+      if (userToken) {
+        localStorage.setItem('userToken', userToken);
+      }
+    }, []);
     const fetchJobs = async () =>{
         try{
            const {data} = await axios.get(backendUrl + '/api/jobs')
            if(data.success){
              setJobs(data.jobs)
-             console.log(data.jobs)
            } else{
             toast.error(data.message)
            }
@@ -40,32 +49,35 @@ export const AppContextProvider = (props) => {
         
     }
 
-    const fetchUserData = async(req,res) =>{
-         try{
+    const fetchUserData = async () => {
+        try {
+          const { data } = await axios.get(backendUrl + '/api/users/user', 
+           { headers: { token: `${userToken}` } // Corrected header to send the token
+          });
+      
+          console.log("hello")
+      
+          if (data.success) {
+            setUserData(data.UserData);
+            console.log(userData);
+          } else {
+            toast.error(data.message);
+          }
+    
+        } catch (error) {
+          toast.error(error.message);
+        }
+      };
+      
 
-           const {data} = await axios.get(backendUrl + 'api/users/user',
-            { headers: {token: userToken}}
-           )
-
-           if(data.success){
-             setUserData(data.userdata)
-           }else{
-             toast.error(data.message)
-           }
-           
-         }catch(error){
-           toast.error(error.message)
-         }
-    }
-
-    //funciton to fetch company data
     const fetchCompanyData = async(req,res) =>{
         try{
-            const {data} = await axios.get(backendUrl +'/api/company/company',{headers:{token:companyToken}})
+            const {data} = await axios.get(backendUrl +'/api/company/company',
+                { headers: { Authorization: `Bearer ${companyToken}` } })
 
             if(data.success){
                setCompanyData(data.company)
-               console.log(data)
+              //  console.log(data)
             } else{
                 toast.error(data.error)
             }
@@ -73,6 +85,23 @@ export const AppContextProvider = (props) => {
             toast.error(error.message)
         }
     }
+  
+    // Function to fetch user's applied applications data
+    const fetchUserApplications = async()=>{
+        try{
+           const {data} = await axios.get(backendUrl + '/api/users/applications',
+           { headers: { token: `${userToken}` }}
+           )
+           if(data.success){
+              setUserApplications(data.applications)
+           } else{
+             toast.error(data.message)
+           }
+        } catch(error){
+              toast.error(error.message)
+        }
+    }
+
 
     useEffect(()=>{
          fetchJobs()
@@ -88,13 +117,31 @@ export const AppContextProvider = (props) => {
             fetchCompanyData()
          }
     },[companyToken])
+   
 
+    useEffect(() => {
+        const storedUserToken = localStorage.getItem('userToken');
+        if (storedUserToken) {
+            setUserToken(storedUserToken);
+        }
+    }, []);
     useEffect(()=>{
         if(userToken){
-            fetchUserData();
+           fetchUserData();
         }
-    },[userToken])
+   },[])
+  //  console.log('use'+userData);
+    useEffect(()=>{
+      const datauser = localStorage.getItem('userData');
+      console.log("data " , datauser)
+        if(datauser){
+            console.log(7)
+            fetchUserData();
+            fetchUserApplications();
+        }
+    },[])
 
+    
     const state = { 
        searchFilter,setSearchFilter,
        isSearched,setIsSearched,
@@ -106,11 +153,14 @@ export const AppContextProvider = (props) => {
        userData,setUserData,
        userApplications,setUserApplications,
        userToken,setUserToken,
-       user,setUser,
        backendUrl,
-       fetchUserData
+       fetchUserData,
+       fetchUserApplications,
+       fetchCompanyData
     }
 
+    // console.log(userData + userToken);
+    // console.log(23);
     return (
         <AppContext.Provider value = {state}>
             {props.children}
