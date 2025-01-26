@@ -161,10 +161,14 @@ export const getUserJobApplication = async (req, res) => {
 }
 
 export const updateUserResume = async (req, res) => {
+    console.log(req.body)
     try {
         const {userId} = req.body
+        console.log(userId)
         const resumeFile = req.File
         const userData = await User.findById(userId)
+
+        console.log(resumeFile)
 
         if (resumeFile) {
             const resumeUpload = await cloudinary.uploader.upload(resumeFile.path)

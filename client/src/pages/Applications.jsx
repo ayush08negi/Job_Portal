@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 import { assets, jobsApplied } from '../assets/assets';
@@ -13,23 +13,22 @@ const Applications = () => {
 
   const [isEdit,setIsEdit] = useState(false);
   const [resume,setResume] = useState(null);
-  const[user,setUser] = useState(null);
 
-
+  const user = JSON.parse(localStorage.getItem("userData"));
   const updateResume = async()=>{
-    const data = JSON.parse(localStorage.getItem("userData"));
-    setUser(data)
-    console.log("userdata",user)
+ 
       try{
         const formData = new FormData()
         formData.append('resume',resume);
-
+        formData.append('userId', user._id);
         const {data} = await axios.post(backendUrl + '/api/users/update-resume',
           formData,
-          {headers: {token: userToken}}
+          {headers: {token: userToken,
+            'Content-Type': 'multipart/form-data',
+          }}
         )
 
-        console.log("data",data);
+        console.log("data",data)
 
         if(data.success){
            toast.success(data.message)
@@ -45,6 +44,7 @@ const Applications = () => {
       setIsEdit(false)
       setResume(null)
   }
+
 
   return (
     <>
