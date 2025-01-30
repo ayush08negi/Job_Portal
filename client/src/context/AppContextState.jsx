@@ -36,6 +36,7 @@ export const AppContextProvider = (props) => {
       }
     }, []);
     const fetchJobs = async () =>{
+      
         try{
            const {data} = await axios.get(backendUrl + '/api/jobs')
            if(data.success){
@@ -48,14 +49,16 @@ export const AppContextProvider = (props) => {
         }
         
     }
-
+   console.log(userToken)
     const fetchUserData = async () => {
+      const user = JSON.parse(localStorage.getItem("userData"));
+      console.log(user)
         try {
-          const { data } = await axios.get(backendUrl + '/api/users/user', 
+          const { data } = await axios.get(backendUrl + `/api/users/user/${user?.email}`, 
            { headers: { token: `${userToken}` } // Corrected header to send the token
           });
       
-          console.log("hello")
+          // console.log("hello")
       
           if (data.success) {
             setUserData(data.UserData);
@@ -69,7 +72,7 @@ export const AppContextProvider = (props) => {
         }
       };
       
-
+     console.log("user"+userData);
     const fetchCompanyData = async(req,res) =>{
         try{
             const {data} = await axios.get(backendUrl +'/api/company/company',

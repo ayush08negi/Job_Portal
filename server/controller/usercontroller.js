@@ -4,7 +4,7 @@ import { v2 as cloudinary } from 'cloudinary'
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt'
 import generateToken from '../utils/generateToken.js'
-
+import streamifier from 'streamifier';
 
 export const register = async (req, res) => {
     const { name, email, password } = req.body;
@@ -67,6 +67,8 @@ export const login = async (req, res) => {
             })
         }
 
+        console.log(user);
+
         const token = generateToken(user._id);
 
         const userdata = {
@@ -74,6 +76,7 @@ export const login = async (req, res) => {
             name: user.name,
             email: user.email,
             password: user.password,
+            resume: user.resume ? user.resume : null
         }
         // console.log(userdata)
         return res.status(200).json({
@@ -91,11 +94,11 @@ export const login = async (req, res) => {
 }
 
 export const getUserData = async (req, res) => {
+    const { email} = req.params
     try {
-        const { userId } = req.body
-        console.log(userId);
-        const UserData = await User.findById(userId);
-        console.log(UserData);
+        // console.log(req.body);
+        // console.log(7,userId);
+        const UserData = await User.find({email});
         res.json({ success: true, UserData })
     } catch (error) {
         console.log(error)
@@ -160,28 +163,67 @@ export const getUserJobApplication = async (req, res) => {
     }
 }
 
+
+const uploadToCloudinary = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { resource_type: 'auto' },
+            (error, result) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(result);
+                }
+            }
+        );
+        streamifier.createReadStream(buffer).pipe(stream);
+    });
+};
+
+// Updated route
 export const updateUserResume = async (req, res) => {
-    console.log(req.body)
     try {
-        const {userId} = req.body
-        console.log(userId)
-        const resumeFile = req.File
-        const userData = await User.findById(userId)
+        const { userId } = req.body;
+        const resumeFile = req.file;
 
-        console.log(resumeFile)
-
-        if (resumeFile) {
-            const resumeUpload = await cloudinary.uploader.upload(resumeFile.path)
-            userData.resume = resumeUpload.secure_url
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'Missing parameter: userId' });
         }
-        await userData.save()
 
-        return res.json({ success: true, message: 'Resume Updated' })
+        if (!resumeFile) {
+            return res.status(400).json({ success: false, message: 'Missing parameter: file' });
+        }
 
+        // Upload the file buffer to Cloudinary
+        const resumeUpload = await uploadToCloudinary(resumeFile.buffer);
+
+        // Update user data
+        const userData = await User.findById(userId);
+        if (!userData) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        userData.resume = resumeUpload.secure_url;
+        await userData.save();
+
+        res.json({ success: true, message: 'Resume updated successfully' });
     } catch (error) {
-        res.json({
-            success: false,
-            message: error.message
-        })
+        console.error("Error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const getResumeData = async (req, res) => {
+    const { email } = req.params;
+    try {
+        const UserData = await User.find({email});
+        console.log(UserData);
+
+        if(UserData){
+            res.json({ success: true, UserData })
+        }
+    } catch (error) {
+        console.error("Error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
     }
 }

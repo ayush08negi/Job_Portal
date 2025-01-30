@@ -65,7 +65,6 @@ const AppyJob = () => {
   const checkAlreadyApplied = () =>{
      const hasApplied = userApplications.some(item => item.jobId._id === JobData._id)
      setIsAlreadyApplied(hasApplied)
-
   }
 
   useEffect(()=> {

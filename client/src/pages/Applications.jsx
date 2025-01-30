@@ -15,20 +15,20 @@ const Applications = () => {
   const [resume,setResume] = useState(null);
 
   const user = JSON.parse(localStorage.getItem("userData"));
+  
   const updateResume = async()=>{
  
       try{
         const formData = new FormData()
-        formData.append('resume',resume);
+        formData.append('resumeFile',resume);
         formData.append('userId', user._id);
+
         const {data} = await axios.post(backendUrl + '/api/users/update-resume',
           formData,
-          {headers: {token: userToken,
-            'Content-Type': 'multipart/form-data',
-          }}
+          {headers: {Authorization: `Bearer ${userToken}` }}
         )
 
-        console.log("data",data)
+        console.log(user);
 
         if(data.success){
            toast.success(data.message)
@@ -44,7 +44,6 @@ const Applications = () => {
       setIsEdit(false)
       setResume(null)
   }
-
 
   return (
     <>
@@ -64,7 +63,7 @@ const Applications = () => {
             </> :
             <div className='flex gap-2'>
               <a className='bg-blue-100 text-blue-600 px-4 py-2 rounded-lg 'href="">
-                {resume ? resume.name : "Resume"}
+                {user.resume ? "Already" : "Resume"}
               </a>
               <button onClick={() => setIsEdit(true)} className='text-gray-500 border border-gray-300 rounded px-4 py-2 '>
                 Edit
